@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StoryCraft Local - AI Travel & Cultural Merchant Platform</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    #map { height: 420px; border-radius: 1rem; z-index: 10; }
+    .pulse-red {
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 1);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased flex flex-col">
+
+  <!-- Header & Navbar -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('tourist'); resetAllSearchFilters();">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
+          <i data-lucide="compass" class="w-6 h-6 text-slate-950 stroke-[2.5]"></i>
+        </div>
+        <div>
+          <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-amber-400 bg-clip-text text-transparent">StoryCraft Local</span>
+          <span class="hidden sm:inline-block ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">AI Pilot v1.2</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center space-x-1 sm:space-x-2 text-sm font-medium">
+        <button onclick="switchTab('tourist')" id="tab-btn-tourist" class="px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center space-x-1.5 transition">
+          <i data-lucide="map" class="w-4 h-4"></i>
+          <span>Traveler</span>
+        </button>
+        <button onclick="switchTab('merchant')" id="tab-btn-merchant" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5 transition">
+          <i data-lucide="store" class="w-4 h-4"></i>
+          <span>Merchant Setup</span>
+        </button>
+        <button onclick="switchTab('concierge')" id="tab-btn-concierge" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5 transition">
+          <i data-lucide="hotel" class="w-4 h-4"></i>
+          <span>Hotel AI</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ==================== TAB 1: TOURIST EXPERIENCE ==================== -->
+    <div id="tab-tourist" class="space-y-8">
+      
+      <!-- ==================== PROMINENT SMART SEARCH SECTION ==================== -->
+      <section class="relative bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-slate-950 border border-slate-800/90 rounded-3xl p-5 sm:p-8 shadow-2xl space-y-6">
+        
+        <div class="text-center max-w-3xl mx-auto space-y-2">
+          <div class="inline-flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            <span>Smart Natural-Language Tourism Search</span>
+          </div>
+          <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Discover Verified Places, Hotels & Experiences
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-400">
+            Search with keywords or natural queries like <span class="text-amber-300 font-medium">"Places in Hyderabad under ₹2,000"</span> or <span class="text-emerald-300 font-medium">"Budget hotels near Tirupati"</span>.
+          </p>
+        </div>
+
+        <!-- Search Bar UI Container -->
+        <div class="max-w-4xl mx-auto relative">
+          <div class="relative flex items-center bg-slate-900/95 border-2 border-slate-700 hover:border-amber-500/70 focus-within:border-amber-400 rounded-2xl shadow-xl transition duration-200">
+            <!-- Search Icon -->
+            <div class="pl-4 sm:pl-5 text-amber-400 flex items-center pointer-events-none">
+              <i data-lucide="search" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+            </div>
+
+            <!-- Search Input -->
+            <input 
+              type="text" 
+              id="main-search-input" 
+              placeholder="Search destinations, hotels, restaurants, attractions…"
+              autocomplete="off"
+              oninput="handleSearchInput(this.value)"
+              onkeydown="handleSearchKeydown(event)"
+              class="w-full bg-transparent px-3 sm:px-4 py-3.5 sm:py-4 text-sm sm:text-base text-white placeholder-slate-400 focus:outline-none"
+            />
+
+            <!-- Clear Button (hidden by default) -->
+            <button 
+              id="search-clear-btn" 
+              onclick="clearSearchInput()" 
+              title="Clear search text"
+              class="hidden p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg mr-1.5 transition"
+            >
+              <i data-lucide="x" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+            </button>
+
+            <!-- Search Submit Button -->
+            <button 
+              onclick="executeSearch()" 
+              id="search-submit-btn"
+              class="mr-2 sm:mr-3 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl text-xs sm:text-sm flex items-center space-x-1.5 shadow-md shadow-amber-500/20 transition transform active:scale-95"
+            >
+              <span id="search-btn-label">Search</span>
+              <i data-lucide="arrow-right" class="w-4 h-4 hidden sm:inline-block"></i>
+            </button>
+          </div>
+
+          <!-- Autocomplete Dropdown -->
+          <div 
+            id="autocomplete-dropdown" 
+            class="hidden absolute left-0 right-0 top-full mt-2 bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-800 max-h-80 overflow-y-auto custom-scroll"
+          >
+            <!-- Suggestions injected dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- Quick Natural Language Suggestion Pills -->
+        <div class="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-2 pt-1 text-xs">
+          <span class="text-slate-400 font-semibold flex items-center space-x-1 mr-1">
+            <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>Try:</span>
+          </span>
+          <button onclick="applySmartQuery('Places to visit in Hyderabad under ₹2,000')" class="px-3 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-amber-300 border border-slate-700 transition">
+            Places to visit in Hyderabad under ₹2,000
+          </button>
+          <button onclick="applySmartQuery('Budget hotels near Tirupati')" class="px-3 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-emerald-300 border border-slate-700 transition">
+            Budget hotels near Tirupati
+          </button>
+          <button onclick="applySmartQuery('Best family-friendly destinations in Andhra Pradesh')" class="px-3 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-blue-300 border border-slate-700 transition">
+            Family-friendly in Andhra Pradesh
+          </button>
+          <button onclick="applySmartQuery('Restaurants near popular tourist attractions')" class="px-3 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-rose-300 border border-slate-700 transition">
+            Restaurants near attractions
+          </button>
+        </div>
+
+        <!-- Filter Controls Toolbar -->
+        <div class="max-w-4xl mx-auto pt-4 border-t border-slate-800/80 space-y-3">
+          
+          <!-- Category Filter Pills (Horizontal Scrollable) -->
+          <div class="flex items-center space-x-2 overflow-x-auto pb-1 custom-scroll text-xs">
+            <button onclick="setCategoryFilter('all')" data-cat="all" class="cat-pill px-3.5 py-1.5 rounded-xl font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 whitespace-nowrap transition">
+              ✨ All Categories
+            </button>
+            <button onclick="setCategoryFilter('destinations')" data-cat="destinations" class="cat-pill px-3.5 py-1.5 rounded-xl font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 whitespace-nowrap transition">
+              🏛️ Destinations
+            </button>
+            <button onclick="setCategoryFilter('hotels')" data-cat="hotels" class="cat-pill px-3.5 py-1.5 rounded-xl font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 whitespace-nowrap transition">
+              🏨 Hotels & Stays
+            </button>
+            <button onclick="setCategoryFilter('restaurants')" data-cat="restaurants" class="cat-pill px-3.5 py-1.5 rounded-xl font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 whitespace-nowrap transition">
+              🍽️ Restaurants & Food
+            </button>
+            <button onclick="setCategoryFilter('attractions')" data-cat="attractions" class="cat-pill px-3.5 py-1.5 rounded-xl font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 whitespace-nowrap transition">
+              🎡 Attractions
+            </button>
+            <button onclick="setCategoryFilter('transport')" data-cat="transport" class="cat-pill px-3.5 py-1.5 rounded-xl font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 whitespace-nowrap transition">
+              🚌 Transportation
+            </button>
+            <button onclick="setCategoryFilter('experiences')" data-cat="experiences" class="cat-pill px-3.5 py-1.5 rounded-xl font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 whitespace-nowrap transition">
+              🎒 Local Guides
+            </button>
+          </div>
+
+          <!-- Secondary Filters Row (Location, Budget, Rating, Sort) -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+            <!-- Location Dropdown -->
+            <div>
+              <label class="block text-slate-400 font-semibold mb-1">Location</label>
+              <select id="filter-location" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400">
+                <option value="all">All Locations</option>
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Tirupati">Tirupati</option>
+                <option value="Andhra Pradesh">Andhra Pradesh (Vizag/Araku)</option>
+                <option value="Kyoto">Kyoto</option>
+              </select>
+            </div>
+
+            <!-- Budget Dropdown -->
+            <div>
+              <label class="block text-slate-400 font-semibold mb-1">Max Budget</label>
+              <select id="filter-budget" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400">
+                <option value="any">Any Budget</option>
+                <option value="500">Under ₹500 (Free / Nominal)</option>
+                <option value="2000">Under ₹2,000</option>
+                <option value="5000">Under ₹5,000</option>
+                <option value="10000">Under ₹10,000</option>
+              </select>
+            </div>
+
+            <!-- Rating Dropdown -->
+            <div>
+              <label class="block text-slate-400 font-semibold mb-1">Min Rating</label>
+              <select id="filter-rating" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400">
+                <option value="all">All Ratings</option>
+                <option value="4.0">4.0+ ★</option>
+                <option value="4.5">4.5+ ★ Very High</option>
+                <option value="4.8">4.8+ ★ Exceptional</option>
+              </select>
+            </div>
+
+            <!-- Sort By Dropdown -->
+            <div>
+              <label class="block text-slate-400 font-semibold mb-1">Sort By</label>
+              <select id="filter-sort" onchange="applyFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400">
+                <option value="relevance">Most Relevant</option>
+                <option value="rating-desc">Highest Rated</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Query Interpretation Badge & Active Filters Bar -->
+        <div id="ai-query-badge-container" class="max-w-4xl mx-auto hidden pt-2">
+          <div class="p-3 bg-amber-500/10 border border-amber-500/25 rounded-2xl flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="flex items-center space-x-2">
+              <span class="px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-bold uppercase text-[10px]">AI Extracted</span>
+              <span id="ai-query-badge-text" class="text-amber-200 font-medium"></span>
+            </div>
+            <button onclick="resetAllSearchFilters()" class="text-slate-400 hover:text-white underline text-[11px]">
+              Reset to All
+            </button>
+          </div>
+        </div>
+
+        <!-- Search Results Grid Section -->
+        <div id="search-results-section" class="max-w-7xl mx-auto pt-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2 text-sm text-slate-300 font-semibold">
+              <span id="results-count-badge">Found 0 verified entries</span>
+              <span id="results-loader" class="hidden inline-flex items-center space-x-1 text-amber-400 text-xs">
+                <i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>
+                <span>Updating results…</span>
+              </span>
+            </div>
+            <button onclick="resetAllSearchFilters()" class="text-xs text-slate-400 hover:text-amber-300 transition">
+              Reset Filters
+            </button>
+          </div>
+
+          <!-- Results Cards Grid -->
+          <div id="results-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Dynamic cards injected via JS -->
+          </div>
+
+          <!-- No Results State -->
+          <div id="no-results-state" class="hidden text-center py-12 px-4 bg-slate-900/40 rounded-2xl border border-slate-800 space-y-3">
+            <div class="w-12 h-12 mx-auto rounded-full bg-slate-800 flex items-center justify-center text-slate-400">
+              <i data-lucide="search-x" class="w-6 h-6"></i>
+            </div>
+            <h4 class="text-base font-bold text-white">No results found matching your criteria</h4>
+            <p class="text-xs text-slate-400 max-w-md mx-auto">
+              We couldn't find matches for this query. Try checking your spelling, selecting "All Locations", or broadening your budget.
+            </p>
+            <button onclick="resetAllSearchFilters()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition">
+              Clear All Filters & Show All Listings
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ==================== EXISTING PLATFORM FEATURES (PRESERVED) ==================== -->
+
+      <!-- Hero Intro Banner -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden shadow-2xl">
+        <div class="space-y-2 z-10">
+          <div class="inline-flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            <span>Adaptive Anti-Congestion Engine</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Explore Authentic Destinations with Zero Queues</h2>
+          <p class="text-slate-400 max-w-2xl text-sm leading-relaxed">
+            StoryCraft Local rebalances tourist traffic in real time. We dynamically divert you around crowded bottlenecks to hidden generational craftsmen, authentic food stalls, and quiet heritage walks.
+          </p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 z-10 w-full md:w-auto">
+          <button onclick="triggerSmartPivot()" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 font-semibold text-white shadow-lg shadow-rose-500/25 flex items-center justify-center space-x-2 transition">
+            <i data-lucide="shuffle" class="w-4 h-4"></i>
+            <span>Simulate Crowd Surge</span>
+          </button>
+          <button onclick="openScannerModal()" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium text-slate-200 flex items-center justify-center space-x-2 transition">
+            <i data-lucide="scan" class="w-4 h-4"></i>
+            <span>Bill Scam Auditor</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Real-Time Crowd Alert Banner (Hidden by default, triggered via JS) -->
+      <div id="smart-pivot-banner" class="hidden bg-rose-950/70 border-2 border-rose-500/50 rounded-2xl p-6 shadow-2xl transition animate-fadeIn">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="flex items-start space-x-4">
+            <div class="p-3 bg-rose-500/20 rounded-xl text-rose-400 border border-rose-500/30">
+              <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="font-bold text-rose-300 text-base">High Congestion Detected at Primary Landmark</span>
+                <span class="px-2 py-0.5 text-xs bg-rose-500 text-white rounded font-extrabold">95% Peak Capacity</span>
+              </div>
+              <p class="text-sm text-slate-300 mt-1">
+                Queue wait is currently <span class="font-bold text-rose-400">85 minutes</span>. We've calculated an instant <strong>Smart Pivot</strong> to Master Sasaki's Bamboo Craft Studio (6 min walk, zero line).
+              </p>
+              <div class="mt-2 text-xs text-amber-300 flex items-center space-x-2">
+                <i data-lucide="tag" class="w-3.5 h-3.5"></i>
+                <span>Dynamic Voucher unlocked: <strong>15% Off Hand-Carved Tea Whisks</strong> (Code: CRAFT15)</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3 w-full md:w-auto">
+            <button onclick="acceptSmartPivot()" class="flex-1 md:flex-initial px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition">
+              Accept Pivot & Reroute
+            </button>
+            <button onclick="dismissSmartPivot()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 text-sm">
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two-Column Map & Itinerary Layout -->
+      <div id="map-section" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Interactive Map & Live Audio Player (7 Cols) -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center space-x-2">
+                <i data-lucide="navigation" class="w-5 h-5 text-amber-400"></i>
+                <h3 class="font-bold text-base text-white">Interactive Tourism Map</h3>
+              </div>
+              <div class="flex items-center space-x-3 text-xs">
+                <span class="flex items-center space-x-1 text-rose-400">
+                  <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
+                  <span>Hotspot</span>
+                </span>
+                <span class="flex items-center space-x-1 text-emerald-400">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                  <span>Quiet Gem</span>
+                </span>
+                <span class="flex items-center space-x-1 text-blue-400">
+                  <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
+                  <span>Active Selection</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Leaflet Container -->
+            <div id="map" class="shadow-inner border border-slate-800"></div>
+
+            <div class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-400">
+              <span id="gps-status" class="flex items-center space-x-1 text-slate-300">
+                <i data-lucide="crosshair" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span id="gps-status-text">Center: Hyderabad & Region View</span>
+              </span>
+              <span class="text-slate-500">Click any card's "Show on Map" to locate</span>
+            </div>
+          </div>
+
+          <!-- Geofenced Spatial Audio Walk Player -->
+          <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+            <div class="flex items-start justify-between">
+              <div class="space-y-1">
+                <span class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-1">
+                  <i data-lucide="headphones" class="w-3.5 h-3.5"></i>
+                  <span>Spatial Audio Companion</span>
+                </span>
+                <h4 id="audio-title" class="font-bold text-lg text-white">Charminar Heritage & Old City Gateway</h4>
+                <p id="audio-desc" class="text-xs text-slate-400">Built in 1591 CE by Muhammad Quli Qutb Shah at the epicenter of historic Hyderabad.</p>
+              </div>
+              <button onclick="toggleAudioSpeech()" id="audio-play-btn" class="w-12 h-12 rounded-full bg-amber-500 hover:bg-amber-400 text-slate-950 flex items-center justify-center shadow-lg shadow-amber-500/30 transition transform hover:scale-105">
+                <i data-lucide="play" id="play-icon" class="w-6 h-6 ml-0.5 fill-current"></i>
+              </button>
+            </div>
+
+            <!-- Dynamic Transcript -->
+            <div class="mt-4 p-4 rounded-xl bg-slate-950/70 border border-slate-800/80 text-sm text-slate-300 leading-relaxed font-serif italic" id="audio-script">
+              "You are standing before the Charminar, the four grand minarets that have stood as the heart of the Deccan plateau for over four centuries. Listen closely to the sounds of the surrounding Laad Bazaar, where traditional lac bangles have been handcrafted by master artisans for over six generations..."
+            </div>
+
+            <!-- Interactive Voice Q&A Box -->
+            <div class="mt-4 pt-4 border-t border-slate-800/70 flex items-center space-x-3">
+              <input type="text" id="ask-input" placeholder="Ask anything about this monument, heritage, or local food..." class="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-400" />
+              <button onclick="handleAskQuestion()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-amber-300 flex items-center space-x-1 transition">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                <span>Ask AI</span>
+              </button>
+            </div>
+            <div id="ask-response" class="hidden mt-3 p-3 bg-slate-900/90 rounded-lg text-xs text-emerald-300 border border-emerald-500/20"></div>
+          </div>
+        </div>
+
+        <!-- Right Column: Itinerary Configuration & Day Schedule (5 Cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <!-- Constraint Configuration Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="font-bold text-base text-white flex items-center space-x-2">
+                <i data-lucide="sliders" class="w-4 h-4 text-amber-400"></i>
+                <span>Travel Preferences & Constraints</span>
+              </h3>
+              <span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">AI Profile</span>
+            </div>
+
+            <div class="space-y-4 text-xs">
+              <div>
+                <label class="block text-slate-400 font-semibold mb-1.5">Daily Budget Allocation: <span id="budget-val" class="text-amber-400 font-bold">₹2,000 / day</span></label>
+                <input type="range" min="500" max="15000" step="500" value="2000" oninput="document.getElementById('budget-val').innerText = '₹' + Number(this.value).toLocaleString('en-IN') + ' / day'" class="w-full accent-amber-500" />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div class="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                  <span class="block text-slate-400 font-medium mb-1">Mobility & Access</span>
+                  <label class="flex items-center space-x-2 text-slate-300 cursor-pointer">
+                    <input type="checkbox" checked class="rounded accent-emerald-500" />
+                    <span>Step-Free Paths</span>
+                  </label>
+                </div>
+                <div class="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                  <span class="block text-slate-400 font-medium mb-1">Dietary Preference</span>
+                  <span class="inline-block px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded font-semibold">Vegetarian / Halal</span>
+                </div>
+              </div>
+
+              <div>
+                <span class="block text-slate-400 font-medium mb-1.5">Active Affinity Tags</span>
+                <div class="flex flex-wrap gap-1.5">
+                  <span class="px-2 py-1 bg-slate-800 text-slate-300 rounded-lg text-[11px] border border-slate-700">Heritage Forts</span>
+                  <span class="px-2 py-1 bg-slate-800 text-slate-300 rounded-lg text-[11px] border border-slate-700">Authentic Biryani</span>
+                  <span class="px-2 py-1 bg-slate-800 text-slate-300 rounded-lg text-[11px] border border-slate-700">Artisan Crafts</span>
+                  <span class="px-2 py-1 bg-amber-500/15 text-amber-300 rounded-lg text-[11px] border border-amber-500/30">Low Crowds</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Itinerary Timeline -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="font-bold text-base text-white flex items-center space-x-2">
+                <i data-lucide="clock" class="w-4 h-4 text-emerald-400"></i>
+                <span>Custom Day Schedule</span>
+              </h3>
+              <span class="text-xs text-emerald-400 font-medium">Auto-Optimized</span>
+            </div>
+
+            <div class="space-y-3 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-800">
+              
+              <!-- Stop 1 -->
+              <div class="relative pl-8">
+                <span class="absolute left-2 top-1.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-slate-900"></span>
+                <div class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold text-slate-200">09:30 AM • Charminar & Laad Bazaar</span>
+                    <span class="text-emerald-400 font-medium">Entry ₹25</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400">Guided walking tour of Sultanate minarets and heritage pearl/lac craft lanes.</p>
+                </div>
+              </div>
+
+              <!-- Stop 2 -->
+              <div class="relative pl-8" id="timeline-stop-2">
+                <span class="absolute left-2 top-1.5 w-3.5 h-3.5 rounded-full bg-amber-500 border-2 border-slate-900"></span>
+                <div class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold text-slate-200">11:45 AM • Salar Jung Museum</span>
+                    <span class="text-amber-400 font-medium">Entry ₹50</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400">Famous Veiled Rebecca & musical clock gallery. Step-free elevators accessible.</p>
+                </div>
+              </div>
+
+              <!-- Stop 3 (Dining) -->
+              <div class="relative pl-8">
+                <span class="absolute left-2 top-1.5 w-3.5 h-3.5 rounded-full bg-blue-500 border-2 border-slate-900"></span>
+                <div class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold text-slate-200">01:30 PM • Authentic Hyderabadi Lunch</span>
+                    <span class="text-blue-400 font-medium">~₹350/person</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400">Authentic dum biryani and mirchi ka salan; verified fair price guarantee.</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== TAB 2: MERCHANT VOICE ONBOARDING ==================== -->
+    <div id="tab-merchant" class="hidden max-w-4xl mx-auto space-y-8 animate-fadeIn">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-4">
+        <div class="inline-flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20">
+          <i data-lucide="mic" class="w-3.5 h-3.5"></i>
+          <span>Voice-to-Storefront Ingestion</span>
+        </div>
+        <h2 class="text-2xl font-extrabold text-white">Create a Multilingual Storefront in 60 Seconds</h2>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          Traditional artisans, street food vendors, and local guides don't need websites or technical fluency. Speak into your phone in Telugu, Hindi, or any regional dialect. StoryCraft extracts operating hours, prices, specialties, and generates an indexed storefront and audio tour stop.
+        </p>
+
+        <!-- Simulated Voice Recording Box -->
+        <div class="p-8 bg-slate-950 rounded-2xl border border-slate-800 text-center space-y-5">
+          <div class="flex justify-center">
+            <button onclick="simulateVoiceRecord()" id="voice-record-btn" class="w-20 h-20 rounded-full bg-gradient-to-tr from-rose-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white flex items-center justify-center shadow-2xl shadow-rose-500/30 transition transform hover:scale-105">
+              <i data-lucide="mic" id="record-mic-icon" class="w-8 h-8"></i>
+            </button>
+          </div>
+          <div id="recording-status" class="text-sm font-semibold text-slate-400">
+            Tap the microphone to speak (Simulating Telugu / Hindi Dialect)
+          </div>
+
+          <!-- Waveform Simulation -->
+          <div id="waveform" class="hidden h-8 flex items-center justify-center space-x-1">
+            <div class="w-1 bg-amber-400 animate-pulse h-6 rounded"></div>
+            <div class="w-1 bg-amber-400 animate-pulse h-8 rounded"></div>
+            <div class="w-1 bg-amber-400 animate-pulse h-4 rounded"></div>
+            <div class="w-1 bg-amber-400 animate-pulse h-7 rounded"></div>
+            <div class="w-1 bg-amber-400 animate-pulse h-5 rounded"></div>
+          </div>
+        </div>
+
+        <!-- Generated Storefront Result (Appears after recording) -->
+        <div id="merchant-result" class="hidden bg-slate-950/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center space-x-1.5">
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+              <span>Generated Storefront & Audio Tour (Live)</span>
+            </span>
+            <span class="text-xs text-slate-500">Indexed in Supabase PostGIS</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="md:col-span-2 space-y-2">
+              <h3 class="text-xl font-bold text-white">Laad Bazaar Traditional Lac Bangle Crafts</h3>
+              <p class="text-xs text-amber-400">Handmade Stone & Lac Bangles • 5th Generation Heritage Workshop</p>
+              <p class="text-sm text-slate-300 leading-relaxed pt-2">
+                "Creating royal bridal lac bangles with natural resin and mirrors. Open 11:00 AM – 9:00 PM daily near Charminar. Bangles start at ₹250/pair. UPI, Cash & Cards accepted."
+              </p>
+              <div class="flex flex-wrap gap-2 pt-2">
+                <span class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-xs">Telugu (Native)</span>
+                <span class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-xs">Hindi (Auto)</span>
+                <span class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-xs">English (Auto)</span>
+                <span class="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-xs">Japanese (Auto)</span>
+              </div>
+            </div>
+
+            <!-- Downloadable Printable QR Card -->
+            <div class="p-4 bg-slate-900 border border-slate-800 rounded-xl text-center space-y-2 flex flex-col items-center justify-center">
+              <div class="w-24 h-24 bg-white p-2 rounded-lg flex items-center justify-center shadow-md">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://storycraft.local/biz/laad-bazaar" alt="QR" class="w-full h-full" />
+              </div>
+              <span class="text-[11px] font-bold text-slate-300">Counter QR Voucher</span>
+              <button onclick="alert('Printable counter card PDF downloaded!')" class="px-3 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-xs font-semibold hover:bg-amber-500/30 transition">
+                Download PDF Card
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== TAB 3: HOTEL AI CONCIERGE ==================== -->
+    <div id="tab-concierge" class="hidden max-w-4xl mx-auto space-y-8 animate-fadeIn">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+        <div class="inline-flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-blue-400 bg-blue-400/10 px-3 py-1 rounded-full border border-blue-400/20">
+          <i data-lucide="hotel" class="w-3.5 h-3.5"></i>
+          <span>B2B Hospitality Engine</span>
+        </div>
+        <h2 class="text-2xl font-extrabold text-white">In-Room White-Label AI Concierge</h2>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          Independent hotels and boutique B&Bs place this QR code in guest rooms. Guests scan to access a 24/7 multilingual assistant pre-loaded with property check-out rules, AC controls, and the host’s handpicked neighborhood spots.
+        </p>
+
+        <!-- Interactive Preview -->
+        <div class="p-6 bg-slate-950 rounded-2xl border border-slate-800 max-w-md mx-auto space-y-4 shadow-2xl">
+          <div class="flex items-center space-x-3 border-b border-slate-800 pb-3">
+            <div class="w-9 h-9 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+              <i data-lucide="home" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-sm text-white">The Golkonda Hotel Hyderabad</h4>
+              <p class="text-[11px] text-slate-400">Room 408 • Guest Concierge Portal</p>
+            </div>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <span class="font-semibold text-slate-300 block mb-1">Host's Secret Recommendations:</span>
+              <ul class="text-slate-400 space-y-1 list-disc list-inside">
+                <li>Best Irani Chai & Osmania Biscuit: <em>Niloufer Café (600m)</em></li>
+                <li>Historic evening walk: <em>Qutb Shahi Tombs at Sunset</em></li>
+              </ul>
+            </div>
+
+            <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
+              <span class="font-semibold text-slate-300 block mb-1">Direct Booking Advantage:</span>
+              <p class="text-emerald-400">Booked direct at 0% OTA commission. Saved ₹850/night compared to Booking.com.</p>
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <button onclick="alert('Inquiry sent directly to Golkonda Hotel front desk via WhatsApp!')" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-lg shadow-blue-500/25 transition">
+              Message Front Desk / Request Room Service
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== MODAL 1: VIEW DETAILS MODAL ==================== -->
+  <div id="details-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scroll">
+      <div class="flex items-start justify-between border-b border-slate-800 pb-3">
+        <div class="space-y-1">
+          <div class="flex items-center space-x-2">
+            <span id="modal-category-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase"></span>
+            <span id="modal-rating" class="text-xs font-bold text-amber-400 flex items-center"></span>
+          </div>
+          <h3 id="modal-title" class="font-extrabold text-xl sm:text-2xl text-white"></h3>
+          <p id="modal-location" class="text-xs text-slate-400 flex items-center"></p>
+        </div>
+        <button onclick="closeDetailsModal()" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Image -->
+      <div class="w-full h-56 rounded-xl overflow-hidden relative shadow-inner">
+        <img id="modal-img" src="" alt="Photo" class="w-full h-full object-cover" />
+        <div id="modal-price-chip" class="absolute bottom-3 right-3 px-3 py-1 bg-slate-950/90 text-amber-300 rounded-lg text-xs font-bold border border-slate-700"></div>
+      </div>
+
+      <!-- Modal Description -->
+      <div class="space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
+        <h4 class="font-bold text-white text-sm">About this Place / Experience</h4>
+        <p id="modal-description"></p>
+      </div>
+
+      <!-- Additional Details Grid -->
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div class="p-3 bg-slate-950/80 border border-slate-800 rounded-xl space-y-1">
+          <span class="text-slate-400 block font-semibold">Timings / Operating Hours:</span>
+          <span id="modal-hours" class="text-slate-200"></span>
+        </div>
+        <div class="p-3 bg-slate-950/80 border border-slate-800 rounded-xl space-y-1">
+          <span class="text-slate-400 block font-semibold">Best Time to Visit:</span>
+          <span id="modal-best-time" class="text-slate-200"></span>
+        </div>
+      </div>
+
+      <!-- Tags list -->
+      <div class="space-y-1.5">
+        <span class="text-xs text-slate-400 font-semibold block">Features & Tags:</span>
+        <div id="modal-tags" class="flex flex-wrap gap-1.5 text-xs"></div>
+      </div>
+
+      <!-- Modal Action Buttons -->
+      <div class="pt-3 border-t border-slate-800 flex flex-col sm:flex-row gap-2.5">
+        <button id="modal-map-btn" onclick="" class="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition">
+          <i data-lucide="map-pin" class="w-4 h-4"></i>
+          <span>Show on Interactive Map</span>
+        </button>
+        <button onclick="alert('Redirecting to official booking / visitation portal for this verified listing!')" class="flex-1 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow-lg shadow-amber-500/20">
+          <i data-lucide="external-link" class="w-4 h-4"></i>
+          <span>Book / Get Directions</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: BILL & SCAM SCANNER ==================== -->
+  <div id="scanner-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl relative">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-base text-white flex items-center space-x-2">
+          <i data-lucide="shield-alert" class="w-5 h-5 text-rose-400"></i>
+          <span>Multimodal Bill Scam Auditor</span>
+        </h3>
+        <button onclick="closeScannerModal()" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-2">
+        <span class="font-semibold text-amber-400 block">Simulating Analysis of Handwritten Restaurant Receipt:</span>
+        <div class="font-mono bg-slate-900 p-3 rounded border border-slate-800 text-slate-400 space-y-1">
+          <div>2x Special Biryani Meals: ₹700</div>
+          <div>1x Mineral Water: ₹40</div>
+          <div class="text-rose-400 font-bold">1x Unannounced AC Service Fee: ₹250</div>
+          <div class="border-t border-slate-800 pt-1 font-bold text-white">Total: ₹990</div>
+        </div>
+      </div>
+
+      <div class="p-3 bg-rose-500/15 border border-rose-500/30 rounded-xl text-xs space-y-1">
+        <div class="font-bold text-rose-300 flex items-center space-x-1.5">
+          <i data-lucide="alert-circle" class="w-4 h-4"></i>
+          <span>Surcharge Flagged Under Consumer Code</span>
+        </div>
+        <p class="text-slate-300">
+          The ₹250 compulsory service surcharge is optional under Consumer Protection Guidelines (CCPA). Restaurants cannot enforce mandatory service fees.
+        </p>
+      </div>
+
+      <button onclick="alert('Dispute script copied: \u201cAs per CCPA guidelines, service charges are voluntary. Please remove this fee from the final bill.\u201d')" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold rounded-xl text-xs border border-slate-700 transition">
+        Copy Respectful Consumer Dispute Script
+      </button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 py-6 mt-12 bg-slate-950 text-center text-xs text-slate-500">
+    <p>StoryCraft Local • AI-Powered Tourism Platform • Built with Verified Tourism Data & Deployed on Vercel</p>
+  </footer>
+
+  <!-- ==================== SCRIPT LOGIC ==================== -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // ==========================================
+    // 1. VERIFIED TOURISM DATASET (Real Data)
+    // ==========================================
+    const TOURISM_DATABASE = [
+      // --- HYDERABAD DESTINATIONS & ATTRACTIONS ---
+      {
+        id: "hyd-charminar",
+        name: "Charminar & Laad Bazaar",
+        category: "destinations",
+        location: "Hyderabad",
+        state: "Telangana",
+        price: 25,
+        priceDisplay: "₹25 Entry",
+        budgetTier: "budget",
+        rating: 4.6,
+        reviewsCount: 14200,
+        image: "https://images.unsplash.com/photo-1608958435020-e8a7109ba809?w=800&auto=format&fit=crop&q=80",
+        description: "Iconic 16th-century mosque with four grand arches and minarets in Old City Hyderabad. Surrounding Laad Bazaar is famous for lacquer bangles, pearls, and street food.",
+        hours: "09:30 AM – 05:30 PM",
+        bestTimeToVisit: "Morning / Sunset",
+        coordinates: [17.3616, 78.4747],
+        tags: ["monument", "heritage", "bangles", "shopping", "family-friendly", "budget"],
+        crowdLevel: "high"
+      },
+      {
+        id: "hyd-golconda",
+        name: "Golconda Fort",
+        category: "attractions",
+        location: "Hyderabad",
+        state: "Telangana",
+        price: 25,
+        priceDisplay: "₹25 Entry",
+        budgetTier: "budget",
+        rating: 4.5,
+        reviewsCount: 11800,
+        image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop&q=80",
+        description: "Historic fortified citadel known for its ingenious acoustic engineering (claps at the gate resonate at the hill summit), royal palaces, and historic Koh-i-Noor diamond vaults.",
+        hours: "09:00 AM – 05:30 PM",
+        bestTimeToVisit: "Late Afternoon (Sound & Light Show)",
+        coordinates: [17.3833, 78.4011],
+        tags: ["fort", "acoustics", "heritage", "history", "family-friendly", "budget"],
+        crowdLevel: "moderate"
+      },
+      {
+        id: "hyd-salarjung",
+        name: "Salar Jung Museum",
+        category: "attractions",
+        location: "Hyderabad",
+        state: "Telangana",
+        price: 50,
+        priceDisplay: "₹50 Entry",
+        budgetTier: "budget",
+        rating: 4.6,
+        reviewsCount: 9500,
+        image: "https://images.unsplash.com/photo-1566127444979-b3d2b654e3d7?w=800&auto=format&fit=crop&q=80",
+        description: "One of the three National Museums of India, housing the private art collection of the Salar Jung family including the Veiled Rebecca, ivory carvings, and the musical clock.",
+        hours: "10:00 AM – 05:00 PM (Closed Fridays)",
+        bestTimeToVisit: "Morning",
+        coordinates: [17.3713, 78.4804],
+        tags: ["museum", "art", "sculpture", "family-friendly", "indoor", "budget"],
+        crowdLevel: "moderate"
+      },
+      {
+        id: "hyd-ramoji",
+        name: "Ramoji Film City",
+        category: "attractions",
+        location: "Hyderabad",
+        state: "Telangana",
+        price: 1350,
+        priceDisplay: "₹1,350 / person",
+        budgetTier: "mid",
+        rating: 4.4,
+        reviewsCount: 18400,
+        image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80",
+        description: "Certified by Guinness World Records as the world's largest film studio complex spanning over 2,000 acres with thematic sets, stunt shows, rides, and gardens.",
+        hours: "09:00 AM – 05:30 PM",
+        bestTimeToVisit: "Full Day Trip",
+        coordinates: [17.2543, 78.6808],
+        tags: ["film-studio", "entertainment", "shows", "kids", "family-friendly"],
+        crowdLevel: "high"
+      },
+      {
+        id: "hyd-hussain-sagar",
+        name: "Hussain Sagar Lake & Buddha Statue",
+        category: "destinations",
+        location: "Hyderabad",
+        state: "Telangana",
+        price: 100,
+        priceDisplay: "₹100 Boat Ride",
+        budgetTier: "budget",
+        rating: 4.3,
+        reviewsCount: 12200,
+        image: "https://images.unsplash.com/photo-1616788494707-ec28f08d05a1?w=800&auto=format&fit=crop&q=80",
+        description: "Heart-shaped historic lake built in 1563, featuring the world's tallest monolithic stone statue of Gautama Buddha on the Gibraltar Rock in the center of the lake.",
+        hours: "08:00 AM – 10:00 PM",
+        bestTimeToVisit: "Evening (Lake Breeze)",
+        coordinates: [17.4239, 78.4738],
+        tags: ["lake", "buddha", "boating", "sunset", "peaceful", "family-friendly"],
+        crowdLevel: "moderate"
+      },
+
+      // --- HYDERABAD HOTELS ---
+      {
+        id: "hyd-hotel-golkonda",
+        name: "The Golkonda Hotel",
+        category: "hotels",
+        location: "Hyderabad",
+        state: "Telangana",
+        price: 4200,
+        priceDisplay: "₹4,200 / night",
+        budgetTier: "mid",
+        rating: 4.3,
+        reviewsCount: 3100,
+        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80",
+        description: "Comfortable 4-star boutique hotel located at Masab Tank near Banjara Hills, offering premium amenities, outdoor pool, and authentic Hyderabadi dining at Melange.",
+        hours: "24/7 Check-in",
+        bestTimeToVisit: "Year-round",
+        coordinates: [17.4005, 78.4503],
+        tags: ["hotel", "boutique", "pool", "wifi", "business", "family-friendly"],
+        crowdLevel: "low"
+      },
+      {
+        id: "hyd-taj-falaknuma",
+        name: "Taj Falaknuma Palace",
+        category: "hotels",
+        location: "Hyderabad",
+        state: "Telangana",
+        price: 36000,
+        priceDisplay: "₹36,000 / night",
+        budgetTier: "luxury",
+        rating: 4.9,
+        reviewsCount: 2200,
+        image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop&q=80",
+        description: "Perched 2,000 feet above Hyderabad, the former palace of the Nizam features Italian marble, Jade collections, Venetian chandeliers, and world-class royal hospitality.",
+        hours: "24/7 Concierge",
+        bestTimeToVisit: "Luxury Weekend",
+        coordinates: [17.3312, 78.4674],
+        tags: ["luxury", "palace", "heritage", "fine-dining", "exclusive"],
+        crowdLevel: "exclusive"
+      },
+
+      // --- HYDERABAD RESTAURANTS ---
+      {
+        id: "hyd-paradise-biryani",
+        name: "Paradise Food Court (Secunderabad)",
+        category: "restaurants",
+        location: "Hyderabad",
+        state: "Telangana",
+        price: 350,
+        priceDisplay: "₹350 / person",
+        budgetTier: "budget",
+        rating: 4.4,
+        reviewsCount: 24000,
+        image: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&auto=format&fit=crop&q=80",
+        description: "Serving Hyderabad's signature Dum Biryani since 1953. Famous for fragrant basmati rice, tender spiced meat, double ka meetha, and falooda.",
+        hours: "11:30 AM – 11:00 PM",
+        bestTimeToVisit: "Lunch / Dinner",
+        coordinates: [17.4414, 78.4872],
+        tags: ["food", "biryani", "authentic", "heritage", "family-friendly", "halal"],
+        crowdLevel: "high"
+      },
+      {
+        id: "hyd-bawarchi",
+        name: "Bawarchi Restaurant (RTC X Roads)",
+        category: "restaurants",
+        location: "Hyderabad",
+        state: "Telangana",
+        price: 300,
+        priceDisplay: "₹300 / person",
+        budgetTier: "budget",
+        rating: 4.5,
+        reviewsCount: 31000,
+        image: "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=800&auto=format&fit=crop&q=80",
+        description: "The original RTC X Roads branch renowned among locals for authentic spicy mutton biryani, chicken 65, and kebabs at student-friendly prices.",
+        hours: "11:30 AM – 11:30 PM",
+        bestTimeToVisit: "Lunch",
+        coordinates: [17.4076, 78.4975],
+        tags: ["food", "biryani", "spicy", "budget", "famous"],
+        crowdLevel: "high"
+      },
+
+      // --- HYDERABAD TRANSPORT & GUIDES ---
+      {
+        id: "hyd-metro-tourist",
+        name: "Hyderabad Metro Rail Tourist Pass",
+        category: "transport",
+        location: "Hyderabad",
+        state: "Telangana",
+        price: 150,
+        priceDisplay: "₹150 Day Pass",
+        budgetTier: "budget",
+        rating: 4.7,
+        reviewsCount: 5200,
+        image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&auto=format&fit=crop&q=80",
+        description: "Fast, air-conditioned public rapid transit connecting Hitec City, Jubilee Hills, Ameerpet, and Old City with seamless contactless smart cards.",
+        hours: "06:00 AM – 11:00 PM",
+        bestTimeToVisit: "All Day",
+        coordinates: [17.4375, 78.4483],
+        tags: ["transport", "metro", "ac", "fast", "sustainable", "budget"],
+        crowdLevel: "moderate"
+      },
+      {
+        id: "hyd-old-city-walk",
+        name: "Old City Heritage Walk Experience",
+        category: "experiences",
+        location: "Hyderabad",
+        state: "Telangana",
+        price: 900,
+        priceDisplay: "₹900 / person",
+        budgetTier: "budget",
+        rating: 4.9,
+        reviewsCount: 1450,
+        image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&auto=format&fit=crop&q=80",
+        description: "Walking tour led by local historians through Chowmahalla courtyards, secret perfume attar shops, bangle kilns, and Irani chai bakeries.",
+        hours: "07:30 AM – 10:30 AM",
+        bestTimeToVisit: "Morning",
+        coordinates: [17.3578, 78.4717],
+        tags: ["guide", "walk", "cultural", "history", "tea", "family-friendly"],
+        crowdLevel: "low"
+      },
+
+      // --- TIRUPATI & ANDHRA PRADESH DESTINATIONS & HOTELS ---
+      {
+        id: "tir-venkateswara",
+        name: "Sri Venkateswara Temple (Tirumala)",
+        category: "destinations",
+        location: "Tirupati",
+        state: "Andhra Pradesh",
+        price: 300,
+        priceDisplay: "₹300 Special Darshan",
+        budgetTier: "budget",
+        rating: 4.9,
+        reviewsCount: 88000,
+        image: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=800&auto=format&fit=crop&q=80",
+        description: "Ancient Dravidian temple located on the seventh peak of Tirumala Hills, dedicated to Lord Venkateswara. One of the world's most revered pilgrimage shrines.",
+        hours: "03:00 AM – 11:00 PM",
+        bestTimeToVisit: "Early Morning / Pre-booked Darshan",
+        coordinates: [13.6833, 79.3472],
+        tags: ["temple", "spiritual", "heritage", "sacred", "family-friendly"],
+        crowdLevel: "high"
+      },
+      {
+        id: "tir-chandragiri",
+        name: "Chandragiri Fort & Raja Mahal",
+        category: "attractions",
+        location: "Tirupati",
+        state: "Andhra Pradesh",
+        price: 20,
+        priceDisplay: "₹20 Entry",
+        budgetTier: "budget",
+        rating: 4.4,
+        reviewsCount: 4200,
+        image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop&q=80",
+        description: "11th-century historical fort built by the Vijayanagara emperors, featuring the Indo-Saracenic Raja Mahal and Rani Mahal, sound and light show, and green gardens.",
+        hours: "09:00 AM – 05:30 PM (Closed Fridays)",
+        bestTimeToVisit: "Afternoon",
+        coordinates: [13.5833, 79.3167],
+        tags: ["fort", "history", "vijayanagara", "gardens", "family-friendly", "budget"],
+        crowdLevel: "low"
+      },
+      {
+        id: "tir-minerva-grand",
+        name: "Hotel Minerva Grand Tirupati",
+        category: "hotels",
+        location: "Tirupati",
+        state: "Andhra Pradesh",
+        price: 2400,
+        priceDisplay: "₹2,400 / night",
+        budgetTier: "budget",
+        rating: 4.3,
+        reviewsCount: 2900,
+        image: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&auto=format&fit=crop&q=80",
+        description: "Well-established budget-friendly business and family hotel near Tirupati Railway Station, featuring clean rooms and pure-vegetarian South Indian meals at Blue Fox.",
+        hours: "24/7 Check-in",
+        bestTimeToVisit: "Pilgrimage stay",
+        coordinates: [13.6300, 79.4180],
+        tags: ["hotel", "budget", "vegetarian", "railway-station", "family-friendly"],
+        crowdLevel: "moderate"
+      },
+      {
+        id: "tir-fortune-grand-ridge",
+        name: "Fortune Select Grand Ridge",
+        category: "hotels",
+        location: "Tirupati",
+        state: "Andhra Pradesh",
+        price: 3900,
+        priceDisplay: "₹3,900 / night",
+        budgetTier: "mid",
+        rating: 4.5,
+        reviewsCount: 3800,
+        image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&auto=format&fit=crop&q=80",
+        description: "Member of ITC's hotel group, situated adjacent to Shilparamam arts village with scenic views of Tirumala hills, multicuisine dining, and swimming pool.",
+        hours: "24/7 Front desk",
+        bestTimeToVisit: "Weekend / Pilgrimage",
+        coordinates: [13.6180, 79.4320],
+        tags: ["hotel", "pool", "comfort", "family-friendly", "views"],
+        crowdLevel: "low"
+      },
+      {
+        id: "tir-andhra-spice",
+        name: "Andhra Spice Restaurant",
+        category: "restaurants",
+        location: "Tirupati",
+        state: "Andhra Pradesh",
+        price: 280,
+        priceDisplay: "₹280 / person",
+        budgetTier: "budget",
+        rating: 4.4,
+        reviewsCount: 4600,
+        image: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&auto=format&fit=crop&q=80",
+        description: "Popular regional dining in Tirupati known for authentic Rayalaseema meals, Ragi Sangati with Natu Kodi pulusu, Guntur chicken, and curd rice.",
+        hours: "11:00 AM – 10:30 PM",
+        bestTimeToVisit: "Lunch",
+        coordinates: [13.6260, 79.4210],
+        tags: ["food", "rayalaseema", "spicy", "budget", "traditional"],
+        crowdLevel: "moderate"
+      },
+      {
+        id: "ap-araku-valley",
+        name: "Araku Valley & Coffee Plantations",
+        category: "destinations",
+        location: "Andhra Pradesh",
+        state: "Andhra Pradesh",
+        price: 0,
+        priceDisplay: "Free Access",
+        budgetTier: "budget",
+        rating: 4.7,
+        reviewsCount: 16800,
+        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&auto=format&fit=crop&q=80",
+        description: "Breathtaking hill station in the Eastern Ghats of Andhra Pradesh, famous for organic tribal coffee plantations, waterfalls, misty viewpoints, and Dhimsa tribal dance.",
+        hours: "Open All Day",
+        bestTimeToVisit: "Winter (Oct – Feb)",
+        coordinates: [18.3333, 82.8833],
+        tags: ["nature", "hills", "coffee", "waterfalls", "family-friendly", "scenic"],
+        crowdLevel: "moderate"
+      },
+      {
+        id: "ap-borra-caves",
+        name: "Borra Caves (Ananthagiri Hills)",
+        category: "attractions",
+        location: "Andhra Pradesh",
+        state: "Andhra Pradesh",
+        price: 80,
+        priceDisplay: "₹80 Entry",
+        budgetTier: "budget",
+        rating: 4.6,
+        reviewsCount: 13200,
+        image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop&q=80",
+        description: "150-million-year-old million limestone karstic caves situated 1,400 meters above sea level, featuring natural stalagmite and stalactite formations illuminated with colorful lights.",
+        hours: "10:00 AM – 05:00 PM",
+        bestTimeToVisit: "Morning",
+        coordinates: [18.2800, 83.0400],
+        tags: ["caves", "geology", "nature", "family-friendly", "must-visit"],
+        crowdLevel: "moderate"
+      },
+
+      // --- KYOTO DESTINATIONS (PRESERVED FOR PLATFORM BALANCE) ---
+      {
+        id: "kyo-kiyomizu",
+        name: "Kiyomizu-dera Temple",
+        category: "destinations",
+        location: "Kyoto",
+        state: "Kansai",
+        price: 250,
+        priceDisplay: "¥400 (~₹250)",
+        budgetTier: "budget",
+        rating: 4.8,
+        reviewsCount: 32000,
+        image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&auto=format&fit=crop&q=80",
+        description: "Ancient UNESCO wooden temple built without a single nail on Mount Otowa with panoramic views over Kyoto and sacred Otowa spring waterfalls.",
+        hours: "06:00 AM – 06:00 PM",
+        bestTimeToVisit: "Early Morning",
+        coordinates: [34.9949, 135.7850],
+        tags: ["temple", "unesco", "views", "historic"],
+        crowdLevel: "high"
+      },
+      {
+        id: "kyo-sasaki-bamboo",
+        name: "Sasaki Bamboo Craft Studio",
+        category: "experiences",
+        location: "Kyoto",
+        state: "Kansai",
+        price: 500,
+        priceDisplay: "Free Visit (Demo)",
+        budgetTier: "budget",
+        rating: 4.9,
+        reviewsCount: 820,
+        image: "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=800&auto=format&fit=crop&q=80",
+        description: "4th generation traditional workshop hand-carving tea whisks (chasen) from single cylinders of winter bamboo. Quiet neighborhood gem.",
+        hours: "10:00 AM – 05:00 PM",
+        bestTimeToVisit: "Anytime",
+        coordinates: [34.9960, 135.7710],
+        tags: ["craft", "artisan", "bamboo", "peaceful", "hidden-gem"],
+        crowdLevel: "low"
+      }
+    ];
+
+    // Current State
+    let activeCategoryFilter = "all";
+    let activeLocationFilter = "all";
+    let activeBudgetFilter = "any";
+    let activeRatingFilter = "all";
+    let activeSortFilter = "relevance";
+    let currentSearchQuery = "";
+    let searchDebounceTimer = null;
+    let markersLayerGroup = null;
+
+    // ==========================================
+    // 2. NATURAL LANGUAGE & SMART AI QUERY PARSER
+    // ==========================================
+    function parseNaturalLanguageQuery(query) {
+      if (!query || !query.trim()) return null;
+      const lower = query.toLowerCase().trim();
+
+      const extracted = {
+        original: query,
+        destination: null,
+        category: null,
+        maxBudget: null,
+        preferences: [],
+        keywords: []
+      };
+
+      // 1. Destination Extraction
+      if (lower.includes("hyderabad") || lower.includes("secunderabad") || lower.includes("telangana")) {
+        extracted.destination = "Hyderabad";
+      } else if (lower.includes("tirupati") || lower.includes("tirumala") || lower.includes("chittoor")) {
+        extracted.destination = "Tirupati";
+      } else if (lower.includes("andhra pradesh") || lower.includes("andhra") || lower.includes("araku") || lower.includes("vizag")) {
+        extracted.destination = "Andhra Pradesh";
+      } else if (lower.includes("kyoto") || lower.includes("japan")) {
+        extracted.destination = "Kyoto";
+      }
+
+      // 2. Category Extraction
+      if (lower.includes("hotel") || lower.includes("stay") || lower.includes("resort") || lower.includes("room") || lower.includes("accommodation")) {
+        extracted.category = "hotels";
+      } else if (lower.includes("restaurant") || lower.includes("food") || lower.includes("biryani") || lower.includes("dining") || lower.includes("eat")) {
+        extracted.category = "restaurants";
+      } else if (lower.includes("attraction") || lower.includes("activity") || lower.includes("museum") || lower.includes("fort") || lower.includes("show")) {
+        extracted.category = "attractions";
+      } else if (lower.includes("transport") || lower.includes("metro") || lower.includes("bus") || lower.includes("taxi")) {
+        extracted.category = "transport";
+      } else if (lower.includes("guide") || lower.includes("walk") || lower.includes("tour") || lower.includes("experience") || lower.includes("craft")) {
+        extracted.category = "experiences";
+      } else if (lower.includes("place") || lower.includes("places to visit") || lower.includes("destination") || lower.includes("visit")) {
+        extracted.category = "destinations";
+      }
+
+      // 3. Budget Extraction (e.g. "under ₹2,000", "under 2000", "below 500", "budget")
+      const budgetMatch = lower.match(/(?:under|below|less than|within|upto)\s*(?:₹|rs\.?|inr)?\s*([0-9,]+)/i);
+      if (budgetMatch && budgetMatch[1]) {
+        const val = parseInt(budgetMatch[1].replace(/,/g, ''), 10);
+        if (!isNaN(val)) extracted.maxBudget = val;
+      } else if (lower.includes("budget") || lower.includes("cheap") || lower.includes("affordable")) {
+        extracted.maxBudget = 3000;
+        extracted.preferences.push("budget-friendly");
+      } else if (lower.includes("luxury") || lower.includes("5 star") || lower.includes("palace")) {
+        extracted.preferences.push("luxury");
+      }
+
+      // 4. Preferences & Affinity Extraction
+      if (lower.includes("family") || lower.includes("family-friendly") || lower.includes("kids")) {
+        extracted.preferences.push("family-friendly");
+      }
+      if (lower.includes("vegetarian") || lower.includes("pure veg")) {
+        extracted.preferences.push("vegetarian");
+      }
+      if (lower.includes("peaceful") || lower.includes("quiet") || lower.includes("serene")) {
+        extracted.preferences.push("quiet");
+      }
+
+      return extracted;
+    }
+
+    // ==========================================
+    // 3. FILTERING & SEARCH ENGINE
+    // ==========================================
+    function searchTourismDatabase() {
+      const query = currentSearchQuery.trim();
+      const nlp = parseNaturalLanguageQuery(query);
+
+      // Determine effective filters (User manual filter takes precedence unless NLP query overrides)
+      let targetLocation = activeLocationFilter;
+      let targetCategory = activeCategoryFilter;
+      let targetMaxBudget = activeBudgetFilter !== "any" ? parseInt(activeBudgetFilter, 10) : null;
+
+      // Update AI Query Badge
+      const badgeContainer = document.getElementById("ai-query-badge-container");
+      const badgeText = document.getElementById("ai-query-badge-text");
+
+      if (nlp && (nlp.destination || nlp.category || nlp.maxBudget || nlp.preferences.length > 0)) {
+        badgeContainer.classList.remove("hidden");
+        const details = [];
+        if (nlp.destination) details.push(`Destination: ${nlp.destination}`);
+        if (nlp.category) details.push(`Category: ${nlp.category}`);
+        if (nlp.maxBudget) details.push(`Max Budget: ≤ ₹${nlp.maxBudget.toLocaleString('en-IN')}`);
+        if (nlp.preferences.length > 0) details.push(`Tags: ${nlp.preferences.join(', ')}`);
+        badgeText.innerText = details.join(" • ");
+
+        // Auto-sync UI filters if left at 'all'
+        if (nlp.destination && activeLocationFilter === "all") targetLocation = nlp.destination;
+        if (nlp.category && activeCategoryFilter === "all") targetCategory = nlp.category;
+        if (nlp.maxBudget && activeBudgetFilter === "any") targetMaxBudget = nlp.maxBudget;
+      } else {
+        badgeContainer.classList.add("hidden");
+      }
+
+      const queryTokens = query.toLowerCase().split(/\s+/).filter(t => t.length > 1 && !["the", "in", "to", "at", "for", "near", "and", "under", "places", "visit"].includes(t));
+
+      // Filter and Score Records
+      let results = TOURISM_DATABASE.filter(item => {
+        // Location filter
+        if (targetLocation !== "all") {
+          const matchLoc = item.location.toLowerCase() === targetLocation.toLowerCase() || 
+                           item.state.toLowerCase().includes(targetLocation.toLowerCase());
+          if (!matchLoc) return false;
+        }
+
+        // Category filter
+        if (targetCategory !== "all") {
+          // If searching for "destinations", allow attractions as well
+          if (targetCategory === "destinations") {
+            if (item.category !== "destinations" && item.category !== "attractions") return false;
+          } else if (item.category !== targetCategory) {
+            return false;
+          }
+        }
+
+        // Budget filter
+        if (targetMaxBudget !== null) {
+          if (item.price > targetMaxBudget) return false;
+        }
+
+        // Rating filter
+        if (activeRatingFilter !== "all") {
+          const minRate = parseFloat(activeRatingFilter);
+          if (item.rating < minRate) return false;
+        }
+
+        // Text query matching (if query entered)
+        if (queryTokens.length > 0) {
+          const itemText = (item.name + " " + item.location + " " + item.state + " " + item.category + " " + item.description + " " + item.tags.join(" ")).toLowerCase();
+          const matchesAny = queryTokens.some(token => itemText.includes(token));
+          if (!matchesAny) return false;
+        }
+
+        return true;
+      });
+
+      // Calculate Relevance Score
+      results = results.map(item => {
+        let score = 0;
+        const lowerName = item.name.toLowerCase();
+        const lowerDesc = item.description.toLowerCase();
+
+        if (query) {
+          const lowerQ = query.toLowerCase();
+          if (lowerName.includes(lowerQ)) score += 30;
+          queryTokens.forEach(t => {
+            if (lowerName.includes(t)) score += 15;
+            if (item.location.toLowerCase().includes(t)) score += 10;
+            if (item.tags.includes(t)) score += 8;
+            if (lowerDesc.includes(t)) score += 4;
+          });
+        }
+
+        // Preference boosters from NLP
+        if (nlp && nlp.preferences) {
+          nlp.preferences.forEach(p => {
+            if (item.tags.includes(p)) score += 12;
+          });
+        }
+
+        score += (item.rating * 2);
+        return { ...item, relevanceScore: score };
+      });
+
+      // Sorting
+      if (activeSortFilter === "relevance") {
+        results.sort((a, b) => b.relevanceScore - a.relevanceScore);
+      } else if (activeSortFilter === "rating-desc") {
+        results.sort((a, b) => b.rating - a.rating);
+      } else if (activeSortFilter === "price-asc") {
+        results.sort((a, b) => a.price - b.price);
+      } else if (activeSortFilter === "price-desc") {
+        results.sort((a, b) => b.price - a.price);
+      }
+
+      return results;
+    }
+
+    // ==========================================
+    // 4. UI RENDERING FOR SEARCH RESULTS
+    // ==========================================
+    function renderSearchResults() {
+      const loader = document.getElementById("results-loader");
+      loader.classList.remove("hidden");
+
+      setTimeout(() => {
+        loader.classList.add("hidden");
+        const results = searchTourismDatabase();
+        const grid = document.getElementById("results-cards-grid");
+        const noResults = document.getElementById("no-results-state");
+        const countBadge = document.getElementById("results-count-badge");
+
+        grid.innerHTML = "";
+
+        if (results.length === 0) {
+          noResults.classList.remove("hidden");
+          countBadge.innerText = "Found 0 verified entries";
+          updateMapWithResults([]);
+          return;
+        }
+
+        noResults.classList.add("hidden");
+        countBadge.innerText = `Found ${results.length} verified ${results.length === 1 ? 'entry' : 'entries'}`;
+
+        results.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "bg-slate-900 border border-slate-800 hover:border-slate-700/80 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition duration-200 flex flex-col group";
+
+          const categoryIcons = {
+            destinations: "🏛️ Destination",
+            hotels: "🏨 Hotel",
+            restaurants: "🍽️ Dining",
+            attractions: "🎡 Attraction",
+            transport: "🚌 Transit",
+            experiences: "🎒 Experience"
+          };
+
+          const catBadgeColor = {
+            destinations: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+            hotels: "bg-blue-500/15 text-blue-300 border-blue-500/30",
+            restaurants: "bg-rose-500/15 text-rose-300 border-rose-500/30",
+            attractions: "bg-purple-500/15 text-purple-300 border-purple-500/30",
+            transport: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+            experiences: "bg-teal-500/15 text-teal-300 border-teal-500/30"
+          };
+
+          card.innerHTML = `
+            <div class="relative h-44 w-full overflow-hidden bg-slate-950">
+              <img 
+                src="${item.image}" 
+                alt="${item.name}" 
+                class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                loading="lazy"
+              />
+              <div class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[11px] font-bold border backdrop-blur-md ${catBadgeColor[item.category] || 'bg-slate-800 text-slate-200'}">
+                ${categoryIcons[item.category] || item.category}
+              </div>
+              <div class="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-slate-950/80 backdrop-blur-md text-amber-300 font-bold text-xs flex items-center space-x-1 border border-slate-700">
+                <span>★</span>
+                <span>${item.rating}</span>
+                <span class="text-slate-400 text-[10px]">(${item.reviewsCount.toLocaleString('en-IN')})</span>
+              </div>
+              <div class="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg bg-slate-950/90 text-white font-extrabold text-xs border border-slate-700 shadow-md">
+                ${item.priceDisplay}
+              </div>
+            </div>
+
+            <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+              <div>
+                <div class="flex items-center space-x-1.5 text-xs text-amber-400 font-medium mb-1">
+                  <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                  <span>${item.location}, ${item.state}</span>
+                </div>
+                <h3 class="font-extrabold text-base text-white group-hover:text-amber-300 transition line-clamp-1">
+                  ${item.name}
+                </h3>
+                <p class="text-xs text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">
+                  ${item.description}
+                </p>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800/80 flex items-center space-x-2">
+                <button 
+                  onclick="openDetailsModal('${item.id}')" 
+                  class="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold rounded-xl text-xs flex items-center justify-center space-x-1.5 transition"
+                >
+                  <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                  <span>View Details</span>
+                </button>
+                <button 
+                  onclick="focusOnMap('${item.id}')" 
+                  title="Locate on Map"
+                  class="py-2 px-3 bg-amber-500/10 hover:bg-amber-500/25 border border-amber-500/30 text-amber-400 font-semibold rounded-xl text-xs flex items-center justify-center space-x-1 transition"
+                >
+                  <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                  <span class="hidden sm:inline">Map</span>
+                </button>
+              </div>
+            </div>
+          `;
+
+          grid.appendChild(card);
+        });
+
+        lucide.createIcons();
+        updateMapWithResults(results);
+      }, 120);
+    }
+
+    // ==========================================
+    // 5. MAP INTEGRATION & MARKERS
+    // ==========================================
+    let map = L.map('map').setView([17.3850, 78.4867], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(map);
+
+    markersLayerGroup = L.layerGroup().addTo(map);
+
+    function updateMapWithResults(results) {
+      markersLayerGroup.clearLayers();
+      if (!results || results.length === 0) return;
+
+      const bounds = [];
+      results.forEach(item => {
+        if (!item.coordinates) return;
+        const [lat, lng] = item.coordinates;
+        bounds.push([lat, lng]);
+
+        const iconColor = item.category === 'hotels' ? '#3b82f6' : 
+                          item.category === 'restaurants' ? '#f43f5e' : 
+                          item.category === 'attractions' ? '#a855f7' : '#f59e0b';
+
+        const customMarker = L.divIcon({
+          html: `<div style="background-color: ${iconColor}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #ffffff; box-shadow: 0 0 8px rgba(0,0,0,0.5);"></div>`,
+          iconSize: [14, 14]
+        });
+
+        const m = L.marker([lat, lng], { icon: customMarker }).addTo(markersLayerGroup);
+        m.bindPopup(`
+          <div style="font-family: inherit; font-size: 12px; color: #0f172a; max-width: 200px;">
+            <b style="font-size: 13px;">${item.name}</b><br/>
+            <span style="color: #64748b;">${item.location} • ${item.priceDisplay}</span><br/>
+            <p style="margin: 4px 0 0 0; font-size: 11px;">${item.description.slice(0, 80)}...</p>
+            <button onclick="openDetailsModal('${item.id}')" style="margin-top: 6px; padding: 3px 8px; background: #0f172a; color: #fff; border-radius: 6px; border: none; font-size: 11px; cursor: pointer;">View Details</button>
+          </div>
+        `);
+      });
+
+      if (bounds.length > 0) {
+        if (bounds.length === 1) {
+          map.setView(bounds[0], 14);
+        } else {
+          map.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
+        }
+      }
+    }
+
+    function focusOnMap(itemId) {
+      const item = TOURISM_DATABASE.find(x => x.id === itemId);
+      if (!item || !item.coordinates) return;
+
+      const mapElem = document.getElementById("map-section");
+      mapElem.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      setTimeout(() => {
+        map.setView(item.coordinates, 15);
+        document.getElementById("gps-status-text").innerText = `Focused: ${item.name} (${item.location})`;
+
+        // Update spatial audio player as well
+        document.getElementById("audio-title").innerText = item.name;
+        document.getElementById("audio-desc").innerText = `${item.location}, ${item.state} • ${item.priceDisplay}`;
+        document.getElementById("audio-script").innerText = `"${item.description} Operating hours: ${item.hours}. Best time to visit: ${item.bestTimeToVisit}."`;
+
+        // Open popup on that marker
+        markersLayerGroup.eachLayer(layer => {
+          const latLng = layer.getLatLng();
+          if (Math.abs(latLng.lat - item.coordinates[0]) < 0.0001 && Math.abs(latLng.lng - item.coordinates[1]) < 0.0001) {
+            layer.openPopup();
+          }
+        });
+      }, 350);
+    }
+
+    // ==========================================
+    // 6. AUTOCOMPLETE & LIVE SUGGESTIONS
+    // ==========================================
+    function handleSearchInput(val) {
+      currentSearchQuery = val;
+      const clearBtn = document.getElementById("search-clear-btn");
+      const dropdown = document.getElementById("autocomplete-dropdown");
+
+      if (val.trim().length > 0) {
+        clearBtn.classList.remove("hidden");
+      } else {
+        clearBtn.classList.add("hidden");
+        dropdown.classList.add("hidden");
+        renderSearchResults();
+        return;
+      }
+
+      // Generate autocomplete suggestions
+      const q = val.toLowerCase().trim();
+      const suggestions = [];
+
+      // Check smart prompt suggestions
+      const smartPrompts = [
+        "Places to visit in Hyderabad under ₹2,000",
+        "Budget hotels near Tirupati",
+        "Best family-friendly destinations in Andhra Pradesh",
+        "Restaurants near popular tourist attractions",
+        "Handicraft workshops in Kyoto"
+      ];
+      smartPrompts.forEach(p => {
+        if (p.toLowerCase().includes(q)) {
+          suggestions.push({ type: "prompt", text: p, icon: "sparkles" });
+        }
+      });
+
+      // Check database matches
+      TOURISM_DATABASE.forEach(item => {
+        if (item.name.toLowerCase().includes(q) || item.location.toLowerCase().includes(q) || item.tags.some(t => t.includes(q))) {
+          suggestions.push({ type: "item", id: item.id, name: item.name, location: item.location, category: item.category, price: item.priceDisplay });
+        }
+      });
+
+      if (suggestions.length > 0) {
+        dropdown.innerHTML = "";
+        suggestions.slice(0, 6).forEach(s => {
+          const div = document.createElement("div");
+          div.className = "px-4 py-3 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between text-xs transition";
+
+          if (s.type === "prompt") {
+            div.innerHTML = `
+              <div class="flex items-center space-x-2 text-amber-300">
+                <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+                <span class="font-medium">${s.text}</span>
+              </div>
+              <span class="text-[10px] uppercase font-bold text-slate-500 bg-slate-800 px-2 py-0.5 rounded">Smart AI Query</span>
+            `;
+            div.onclick = () => { applySmartQuery(s.text); dropdown.classList.add("hidden"); };
+          } else {
+            div.innerHTML = `
+              <div class="flex items-center space-x-2.5">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
+                <div>
+                  <span class="font-bold text-white block">${s.name}</span>
+                  <span class="text-[11px] text-slate-400">${s.location} • ${s.category}</span>
+                </div>
+              </div>
+              <span class="text-xs font-semibold text-amber-400">${s.price}</span>
+            `;
+            div.onclick = () => {
+              document.getElementById("main-search-input").value = s.name;
+              currentSearchQuery = s.name;
+              dropdown.classList.add("hidden");
+              renderSearchResults();
+            };
+          }
+
+          dropdown.appendChild(div);
+        });
+        dropdown.classList.remove("hidden");
+        lucide.createIcons();
+      } else {
+        dropdown.classList.add("hidden");
+      }
+
+      // Debounce main search
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        renderSearchResults();
+      }, 250);
+    }
+
+    function handleSearchKeydown(e) {
+      if (e.key === "Enter") {
+        document.getElementById("autocomplete-dropdown").classList.add("hidden");
+        executeSearch();
+      } else if (e.key === "Escape") {
+        document.getElementById("autocomplete-dropdown").classList.add("hidden");
+      }
+    }
+
+    function executeSearch() {
+      document.getElementById("autocomplete-dropdown").classList.add("hidden");
+      renderSearchResults();
+    }
+
+    function clearSearchInput() {
+      document.getElementById("main-search-input").value = "";
+      currentSearchQuery = "";
+      document.getElementById("search-clear-btn").classList.add("hidden");
+      document.getElementById("autocomplete-dropdown").classList.add("hidden");
+      renderSearchResults();
+    }
+
+    function applySmartQuery(queryText) {
+      document.getElementById("main-search-input").value = queryText;
+      currentSearchQuery = queryText;
+      document.getElementById("search-clear-btn").classList.remove("hidden");
+      document.getElementById("autocomplete-dropdown").classList.add("hidden");
+      renderSearchResults();
+    }
+
+    // ==========================================
+    // 7. FILTERS HANDLING
+    // ==========================================
+    function setCategoryFilter(cat) {
+      activeCategoryFilter = cat;
+      document.querySelectorAll(".cat-pill").forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.className = "cat-pill px-3.5 py-1.5 rounded-xl font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 whitespace-nowrap transition";
+        } else {
+          btn.className = "cat-pill px-3.5 py-1.5 rounded-xl font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 whitespace-nowrap transition";
+        }
+      });
+      renderSearchResults();
+    }
+
+    function applyFilters() {
+      activeLocationFilter = document.getElementById("filter-location").value;
+      activeBudgetFilter = document.getElementById("filter-budget").value;
+      activeRatingFilter = document.getElementById("filter-rating").value;
+      activeSortFilter = document.getElementById("filter-sort").value;
+      renderSearchResults();
+    }
+
+    function resetAllSearchFilters() {
+      document.getElementById("main-search-input").value = "";
+      currentSearchQuery = "";
+      document.getElementById("search-clear-btn").classList.add("hidden");
+      document.getElementById("autocomplete-dropdown").classList.add("hidden");
+
+      activeCategoryFilter = "all";
+      activeLocationFilter = "all";
+      activeBudgetFilter = "any";
+      activeRatingFilter = "all";
+      activeSortFilter = "relevance";
+
+      document.getElementById("filter-location").value = "all";
+      document.getElementById("filter-budget").value = "any";
+      document.getElementById("filter-rating").value = "all";
+      document.getElementById("filter-sort").value = "relevance";
+
+      document.querySelectorAll(".cat-pill").forEach(btn => {
+        if (btn.dataset.cat === "all") {
+          btn.className = "cat-pill px-3.5 py-1.5 rounded-xl font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 whitespace-nowrap transition";
+        } else {
+          btn.className = "cat-pill px-3.5 py-1.5 rounded-xl font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700 whitespace-nowrap transition";
+        }
+      });
+
+      renderSearchResults();
+    }
+
+    // Close autocomplete on click outside
+    document.addEventListener("click", (e) => {
+      const dropdown = document.getElementById("autocomplete-dropdown");
+      const searchInput = document.getElementById("main-search-input");
+      if (!dropdown.contains(e.target) && e.target !== searchInput) {
+        dropdown.classList.add("hidden");
+      }
+    });
+
+    // ==========================================
+    // 8. VIEW DETAILS MODAL
+    // ==========================================
+    function openDetailsModal(itemId) {
+      const item = TOURISM_DATABASE.find(x => x.id === itemId);
+      if (!item) return;
+
+      document.getElementById("modal-title").innerText = item.name;
+      document.getElementById("modal-location").innerText = `📍 ${item.location}, ${item.state}`;
+      document.getElementById("modal-rating").innerText = `★ ${item.rating} (${item.reviewsCount.toLocaleString('en-IN')} verified reviews)`;
+      document.getElementById("modal-price-chip").innerText = item.priceDisplay;
+      document.getElementById("modal-img").src = item.image;
+      document.getElementById("modal-img").alt = item.name;
+      document.getElementById("modal-description").innerText = item.description;
+      document.getElementById("modal-hours").innerText = item.hours;
+      document.getElementById("modal-best-time").innerText = item.bestTimeToVisit;
+
+      const catBadge = document.getElementById("modal-category-badge");
+      catBadge.innerText = item.category.toUpperCase();
+      catBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30";
+
+      const tagsContainer = document.getElementById("modal-tags");
+      tagsContainer.innerHTML = "";
+      item.tags.forEach(t => {
+        const span = document.createElement("span");
+        span.className = "px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px] border border-slate-700";
+        span.innerText = `#${t}`;
+        tagsContainer.appendChild(span);
+      });
+
+      document.getElementById("modal-map-btn").onclick = () => {
+        closeDetailsModal();
+        focusOnMap(item.id);
+      };
+
+      document.getElementById("details-modal").classList.remove("hidden");
+    }
+
+    function closeDetailsModal() {
+      document.getElementById("details-modal").classList.add("hidden");
+    }
+
+    // ==========================================
+    // 9. EXISTING PLATFORM FUNCTIONS (PRESERVED)
+    // ==========================================
+    function switchTab(tab) {
+      document.getElementById('tab-tourist').classList.add('hidden');
+      document.getElementById('tab-merchant').classList.add('hidden');
+      document.getElementById('tab-concierge').classList.add('hidden');
+
+      document.getElementById('tab-btn-tourist').className = 'px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5 transition';
+      document.getElementById('tab-btn-merchant').className = 'px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5 transition';
+      document.getElementById('tab-btn-concierge').className = 'px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5 transition';
+
+      if (tab === 'tourist') {
+        document.getElementById('tab-tourist').classList.remove('hidden');
+        document.getElementById('tab-btn-tourist').className = 'px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center space-x-1.5 transition';
+        setTimeout(() => map.invalidateSize(), 150);
+      } else if (tab === 'merchant') {
+        document.getElementById('tab-merchant').classList.remove('hidden');
+        document.getElementById('tab-btn-merchant').className = 'px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1.5 transition';
+      } else if (tab === 'concierge') {
+        document.getElementById('tab-concierge').classList.remove('hidden');
+        document.getElementById('tab-btn-concierge').className = 'px-3 py-1.5 rounded-lg bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center space-x-1.5 transition';
+      }
+    }
+
+    function triggerSmartPivot() {
+      document.getElementById('smart-pivot-banner').classList.remove('hidden');
+      focusOnMap('kyo-kiyomizu');
+    }
+
+    function dismissSmartPivot() {
+      document.getElementById('smart-pivot-banner').classList.add('hidden');
+    }
+
+    function acceptSmartPivot() {
+      document.getElementById('smart-pivot-banner').classList.add('hidden');
+      focusOnMap('kyo-sasaki-bamboo');
+      
+      document.getElementById('timeline-stop-2').innerHTML = `
+        <span class="absolute left-2 top-1.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-slate-900"></span>
+        <div class="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl space-y-1">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-emerald-300">11:15 AM • Sasaki Bamboo Craft Studio</span>
+            <span class="text-emerald-400 font-bold">Pivoted (0m Queue)</span>
+          </div>
+          <p class="text-[11px] text-slate-300">Private tea whisk demonstration. 15% discount voucher CRAFT15 active.</p>
+        </div>
+      `;
+
+      document.getElementById('audio-title').innerText = "Sasaki Bamboo Craft Studio";
+      document.getElementById('audio-desc').innerText = "Master Sasaki carving 100-strand chasen whisks from green bamboo.";
+      document.getElementById('audio-script').innerText = '"Welcome inside. My great-grandfather supplied tea whisks to the Urasenke school right on this block. Feel the tension in these outer tines..."';
+    }
+
+    let isPlaying = false;
+    function toggleAudioSpeech() {
+      isPlaying = !isPlaying;
+      const playIcon = document.getElementById('play-icon');
+      if (isPlaying) {
+        playIcon.setAttribute('data-lucide', 'pause');
+        lucide.createIcons();
+        if ('speechSynthesis' in window) {
+          const text = document.getElementById('audio-script').innerText;
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.rate = 0.95;
+          utterance.onend = () => {
+            isPlaying = false;
+            playIcon.setAttribute('data-lucide', 'play');
+            lucide.createIcons();
+          };
+          window.speechSynthesis.speak(utterance);
+        }
+      } else {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        playIcon.setAttribute('data-lucide', 'play');
+        lucide.createIcons();
+      }
+    }
+
+    function handleAskQuestion() {
+      const input = document.getElementById('ask-input');
+      const res = document.getElementById('ask-response');
+      if (!input.value.trim()) return;
+      res.classList.remove('hidden');
+      res.innerText = `AI Response: "${input.value}" — Grounded in local verified archives. Charminar's stucco decorations and acoustic galleries date to the Qutb Shahi era.`;
+      input.value = '';
+    }
+
+    function simulateVoiceRecord() {
+      const btn = document.getElementById('voice-record-btn');
+      const status = document.getElementById('recording-status');
+      const wave = document.getElementById('waveform');
+      const result = document.getElementById('merchant-result');
+
+      status.innerText = "Listening to audio (Dialect: Telugu/Hindi)...";
+      wave.classList.remove('hidden');
+      btn.classList.add('pulse-red');
+
+      setTimeout(() => {
+        status.innerText = "Transcribing with Whisper & extracting structured JSON with Gemini Flash...";
+      }, 2000);
+
+      setTimeout(() => {
+        status.innerText = "Done! Storefront published and indexed in PostGIS.";
+        wave.classList.add('hidden');
+        btn.classList.remove('pulse-red');
+        result.classList.remove('hidden');
+      }, 4000);
+    }
+
+    function openScannerModal() {
+      document.getElementById('scanner-modal').classList.remove('hidden');
+    }
+    function closeScannerModal() {
+      document.getElementById('scanner-modal').classList.add('hidden');
+    }
+
+    // Initialize initial results on load
+    renderSearchResults();
+  </script>
+</body>
+</html>

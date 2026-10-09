@@ -1,0 +1,12 @@
+{
+  "name": "storycraft-local",
+  "version": "1.0.0",
+  "description": "StoryCraft Local - Decentralized AI-Powered Tourism & Cultural Merchant Platform",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "keywords": ["ai", "tourism", "overtourism", "travel", "mcp"],
+  "author": "Antigravity Team",
+  "license": "MIT"
+}
