@@ -10,16 +10,16 @@
 4. **Multimodal Bill & Scam Auditor:** Camera scanner that flags unauthorized cover charges under local consumer laws.
 5. **In-Room Hotel AI Concierge:** White-label QR portal for independent guesthouses.
 
+## Live Deployments
+* **Render (Live Production):** [https://storycraft-local.onrender.com](https://storycraft-local.onrender.com)
+* **Vercel (Live Production):** [https://storycraft-local.vercel.app](https://storycraft-local.vercel.app)
+* **GitHub Repository:** [https://github.com/LikithaReddy12122/storycraft-local](https://github.com/LikithaReddy12122/storycraft-local)
+
+## Deploying to Render
+The project is connected to Render with Auto-Deploy enabled on `main` branch. Any git push will trigger an automatic deploy on Render.
+
 ## Deploying to Vercel
-
-### Option 1: GitHub Integration (Recommended)
-1. Push this folder to a new GitHub repository.
-2. Go to [vercel.com/new](https://vercel.com/new).
-3. Select your repository and click **Deploy**.
-
-### Option 2: Vercel CLI
 ```bash
-npm install -g vercel
-vercel login
 vercel --prod
 ```
+

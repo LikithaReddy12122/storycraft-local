@@ -4,9 +4,21 @@
   "description": "StoryCraft Local - Decentralized AI-Powered Tourism & Cultural Merchant Platform",
   "main": "index.html",
   "scripts": {
-    "start": "npx serve ."
+    "start": "node server.js",
+    "dev": "node server.js"
   },
-  "keywords": ["ai", "tourism", "overtourism", "travel", "mcp"],
+  "keywords": [
+    "ai",
+    "tourism",
+    "overtourism",
+    "travel",
+    "mcp"
+  ],
   "author": "Antigravity Team",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.6",
+    "express": "^5.2.1"
+  }
 }

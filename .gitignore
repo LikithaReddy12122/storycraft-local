@@ -1,3 +1,6 @@
-﻿.vercel
+.vercel
 node_modules
 *.log
+.env
+.env.local
+

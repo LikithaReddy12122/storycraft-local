@@ -70,6 +70,11 @@
           <i data-lucide="hotel" class="w-4 h-4"></i>
           <span>Hotel AI</span>
         </button>
+        <button onclick="openAiPlannerModal()" id="nav-btn-ai-planner" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-blue-500/20 text-amber-300 border border-amber-500/40 hover:border-amber-300 flex items-center space-x-1.5 transition shadow-sm shadow-amber-500/10 font-semibold text-xs sm:text-sm">
+          <i data-lucide="sparkles" class="w-4 h-4 text-amber-400 animate-pulse"></i>
+          <span>AI Assistant</span>
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        </button>
       </nav>
     </div>
   </header>
@@ -744,6 +749,116 @@
       <button onclick="alert('Dispute script copied: \u201cAs per CCPA guidelines, service charges are voluntary. Please remove this fee from the final bill.\u201d')" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold rounded-xl text-xs border border-slate-700 transition">
         Copy Respectful Consumer Dispute Script
       </button>
+    </div>
+  <!-- Floating AI Assistant Button -->
+  <div class="fixed bottom-6 right-6 z-40">
+    <button onclick="openAiPlannerModal()" class="flex items-center space-x-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-amber-500 via-emerald-500 to-blue-500 hover:from-amber-400 hover:to-emerald-400 text-slate-950 font-extrabold shadow-2xl shadow-amber-500/30 transition transform hover:scale-105 active:scale-95 group border border-amber-300/40">
+      <div class="relative">
+        <i data-lucide="bot" class="w-5 h-5 text-slate-950"></i>
+        <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+      </div>
+      <span class="text-xs sm:text-sm tracking-tight">AI Travel Assistant</span>
+    </button>
+  </div>
+
+  <!-- ==================== MODAL 3: AI TRIP PLANNER & TRAVEL ASSISTANT ==================== -->
+  <div id="ai-planner-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-3xl w-full flex flex-col shadow-2xl overflow-hidden max-h-[92vh] sm:max-h-[88vh]">
+      
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="font-extrabold text-base sm:text-lg text-white">StoryCraft AI Travel Assistant</h3>
+              <span id="ai-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center space-x-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span id="ai-status-text">Checking AI status...</span>
+              </span>
+            </div>
+            <p class="text-xs text-slate-400">Personalized itineraries, budget tracking & verified recommendations</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="clearAiChat()" title="Clear Chat History" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition text-xs flex items-center space-x-1">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Clear</span>
+          </button>
+          <button onclick="closeAiPlannerModal()" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Prompt Suggestions Bar -->
+      <div class="px-4 py-2.5 bg-slate-950/40 border-b border-slate-800/80 flex items-center space-x-2 overflow-x-auto custom-scroll text-xs">
+        <span class="text-slate-500 font-semibold uppercase text-[10px] whitespace-nowrap flex items-center space-x-1">
+          <i data-lucide="lightbulb" class="w-3 h-3 text-amber-400"></i>
+          <span>Try:</span>
+        </span>
+        <button onclick="handleQuickAiPrompt('Plan a two-day trip to Hyderabad within ₹3,000.')" class="px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-amber-300 border border-slate-700/80 whitespace-nowrap transition">
+          Hyderabad 2-Day (₹3,000)
+        </button>
+        <button onclick="handleQuickAiPrompt('Suggest family-friendly tourist destinations in Andhra Pradesh.')" class="px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-emerald-300 border border-slate-700/80 whitespace-nowrap transition">
+          Family Spots in AP
+        </button>
+        <button onclick="handleQuickAiPrompt('Find budget accommodation near Tirupati.')" class="px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-blue-300 border border-slate-700/80 whitespace-nowrap transition">
+          Budget Hotels near Tirupati
+        </button>
+        <button onclick="handleQuickAiPrompt('Create a one-day itinerary with historical places and local food in Hyderabad.')" class="px-3 py-1 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-rose-300 border border-slate-700/80 whitespace-nowrap transition">
+          History & Local Food Itinerary
+        </button>
+      </div>
+
+      <!-- Chat Messages Container -->
+      <div id="ai-chat-messages" class="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4 custom-scroll text-xs sm:text-sm">
+        <!-- Messages will be rendered here dynamically -->
+      </div>
+
+      <!-- Loading / Thinking Indicator (hidden by default) -->
+      <div id="ai-loading-indicator" class="hidden px-5 py-3 bg-slate-950/70 border-t border-slate-800/80 flex items-center space-x-3 text-xs text-amber-400">
+        <div class="flex space-x-1">
+          <div class="w-2 h-2 rounded-full bg-amber-400 animate-bounce" style="animation-delay: 0ms"></div>
+          <div class="w-2 h-2 rounded-full bg-amber-400 animate-bounce" style="animation-delay: 150ms"></div>
+          <div class="w-2 h-2 rounded-full bg-amber-400 animate-bounce" style="animation-delay: 300ms"></div>
+        </div>
+        <span id="ai-loading-text">Analyzing query and consulting verified tourism database...</span>
+      </div>
+
+      <!-- Error / Key Warning Banner (hidden by default) -->
+      <div id="ai-error-banner" class="hidden px-4 py-3 bg-rose-500/10 border-t border-rose-500/30 text-rose-300 text-xs flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 text-rose-400 flex-shrink-0"></i>
+          <span id="ai-error-text">AI Request Failed.</span>
+        </div>
+        <button onclick="retryLastAiQuery()" class="px-3 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-500/30 font-semibold transition">
+          Retry
+        </button>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="p-3 sm:p-4 bg-slate-950 border-t border-slate-800 flex items-center space-x-2 sm:space-x-3">
+        <input 
+          type="text" 
+          id="ai-chat-input" 
+          placeholder="Ask AI: e.g. 'Plan a 2-day family trip to Hyderabad under ₹3,000'..."
+          class="flex-1 bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
+          onkeydown="if(event.key==='Enter') submitAiMessage();"
+        />
+        <button 
+          id="ai-send-btn"
+          onclick="submitAiMessage()" 
+          class="px-4 sm:px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm flex items-center space-x-1.5 transition shadow-lg shadow-amber-500/20"
+        >
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Send</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -1838,13 +1953,329 @@
       }
     }
 
-    function handleAskQuestion() {
+    // ==========================================
+    // 10. AI ASSISTANT & TRIP PLANNER LOGIC
+    // ==========================================
+    let aiChatHistory = [];
+    let lastUserQuery = '';
+    let isAiLoading = false;
+    let isAiKeyConfigured = false;
+
+    const INITIAL_AI_WELCOME = {
+      role: 'assistant',
+      text: `👋 **Namaste! I am your StoryCraft Local AI Travel Guide.**
+
+I help you discover verified destinations, craft personalized itineraries, find budget stays, and explore local culture across **Hyderabad, Tirupati, and Andhra Pradesh**.
+
+💡 **What would you like to explore today?**
+* Ask for a **custom itinerary** with budget & days (e.g. *"Plan a 2-day trip to Hyderabad within ₹3,000"*).
+* Discover **authentic food & hotels** near popular attractions.
+* Find **family-friendly destinations** in Andhra Pradesh or budget stays in Tirupati.
+* Ask any question in **English, Telugu, or Hindi**!`,
+      groundedPlaces: []
+    };
+
+    async function checkAiServerStatus() {
+      const badge = document.getElementById('ai-status-badge');
+      if (!badge) return;
+
+      try {
+        const res = await fetch('/api/health');
+        if (res.ok) {
+          const data = await res.json();
+          isAiKeyConfigured = data.aiConfigured;
+          if (data.aiConfigured) {
+            badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center space-x-1";
+            badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>AI Live (${data.model || 'Gemini'})</span>`;
+          } else {
+            badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center space-x-1";
+            badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span><span>API Key Required (.env)</span>`;
+          }
+        } else {
+          badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-400 border border-slate-500/30 flex items-center space-x-1";
+          badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span><span>Server Offline</span>`;
+        }
+      } catch (e) {
+        badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-400 border border-slate-500/30 flex items-center space-x-1";
+        badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span><span>Local Standalone</span>`;
+      }
+    }
+
+    function openAiPlannerModal() {
+      const modal = document.getElementById('ai-planner-modal');
+      modal.classList.remove('hidden');
+      checkAiServerStatus();
+      if (aiChatHistory.length === 0) {
+        aiChatHistory.push(INITIAL_AI_WELCOME);
+        renderAiMessages();
+      }
+      setTimeout(() => {
+        const input = document.getElementById('ai-chat-input');
+        if (input) input.focus();
+      }, 100);
+      lucide.createIcons();
+    }
+
+    function closeAiPlannerModal() {
+      document.getElementById('ai-planner-modal').classList.add('hidden');
+    }
+
+    function clearAiChat() {
+      aiChatHistory = [INITIAL_AI_WELCOME];
+      renderAiMessages();
+      hideAiError();
+    }
+
+    function formatMarkdown(text) {
+      if (!text) return '';
+      let html = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      
+      // Section headers
+      html = html.replace(/^### (.*$)/gim, '<h4 class="font-bold text-amber-300 mt-3 mb-1 text-xs sm:text-sm flex items-center space-x-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block mr-1"></span>$1</h4>');
+      html = html.replace(/^## (.*$)/gim, '<h3 class="font-extrabold text-white mt-4 mb-2 text-sm sm:text-base border-b border-slate-800 pb-1">$1</h3>');
+      
+      // Bold & Italic
+      html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+      html = html.replace(/\*(.*?)\*/g, '<em class="italic text-slate-300">$1</em>');
+
+      // Unordered lists
+      html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<li class="ml-4 list-disc text-slate-300 my-0.5">$1</li>');
+
+      // Numbered lists
+      html = html.replace(/^\s*(\d+)\.\s+(.*$)/gim, '<li class="ml-4 list-decimal text-slate-300 my-0.5"><strong class="text-amber-300">$1.</strong> $2</li>');
+
+      // Paragraph spacing
+      html = html.replace(/\n\n/g, '<div class="h-2"></div>');
+      html = html.replace(/\n/g, '<br/>');
+
+      return html;
+    }
+
+    function renderAiMessages() {
+      const container = document.getElementById('ai-chat-messages');
+      if (!container) return;
+
+      container.innerHTML = aiChatHistory.map((msg, index) => {
+        const isUser = msg.role === 'user';
+        if (isUser) {
+          return `
+            <div class="flex items-start justify-end space-x-2 animate-fadeIn">
+              <div class="max-w-[85%] sm:max-w-[75%] p-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-semibold shadow-lg shadow-amber-500/10 text-xs sm:text-sm">
+                ${msg.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+              </div>
+              <div class="w-7 h-7 rounded-xl bg-amber-400 flex items-center justify-center text-slate-950 text-xs font-bold flex-shrink-0">
+                You
+              </div>
+            </div>
+          `;
+        } else {
+          let placesHtml = '';
+          if (msg.groundedPlaces && msg.groundedPlaces.length > 0) {
+            placesHtml = `
+              <div class="mt-3 pt-3 border-t border-slate-800/80 space-y-2">
+                <div class="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-1">
+                  <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+                  <span>Verified Database Places Mentioned:</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  ${msg.groundedPlaces.map(p => `
+                    <div class="flex items-center space-x-2.5 p-2 bg-slate-950/80 rounded-xl border border-slate-800 hover:border-slate-700 transition">
+                      <img src="${p.image}" alt="${p.name}" class="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                      <div class="flex-1 min-w-0 text-left">
+                        <div class="font-bold text-slate-200 text-xs truncate">${p.name}</div>
+                        <div class="text-[11px] text-amber-400 font-semibold">${p.priceDisplay} • ${p.rating}★</div>
+                        <div class="text-[10px] text-slate-400 truncate">${p.location}</div>
+                      </div>
+                      <button onclick="closeAiPlannerModal(); openDetailsModal('${p.id}');" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-[10px] font-bold border border-slate-700 transition flex-shrink-0">
+                        Details
+                      </button>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+          }
+
+          return `
+            <div class="flex items-start space-x-2 sm:space-x-3 animate-fadeIn">
+              <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-emerald-500 flex items-center justify-center text-slate-950 flex-shrink-0 shadow-md">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+              </div>
+              <div class="flex-1 max-w-[90%] sm:max-w-[85%] p-4 rounded-2xl bg-slate-950/90 border border-slate-800/90 text-slate-200 shadow-md leading-relaxed text-xs sm:text-sm">
+                ${formatMarkdown(msg.text)}
+                ${placesHtml}
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+
+      container.scrollTop = container.scrollHeight;
+      lucide.createIcons();
+    }
+
+    function showAiLoading(text = "Consulting verified tourism database & generating advice...") {
+      isAiLoading = true;
+      const loader = document.getElementById('ai-loading-indicator');
+      const loaderText = document.getElementById('ai-loading-text');
+      const sendBtn = document.getElementById('ai-send-btn');
+      if (loader) loader.classList.remove('hidden');
+      if (loaderText) loaderText.innerText = text;
+      if (sendBtn) sendBtn.disabled = true;
+    }
+
+    function hideAiLoading() {
+      isAiLoading = false;
+      const loader = document.getElementById('ai-loading-indicator');
+      const sendBtn = document.getElementById('ai-send-btn');
+      if (loader) loader.classList.add('hidden');
+      if (sendBtn) sendBtn.disabled = false;
+    }
+
+    function showAiError(msg) {
+      const banner = document.getElementById('ai-error-banner');
+      const text = document.getElementById('ai-error-text');
+      if (banner && text) {
+        text.innerText = msg;
+        banner.classList.remove('hidden');
+      }
+    }
+
+    function hideAiError() {
+      const banner = document.getElementById('ai-error-banner');
+      if (banner) banner.classList.add('hidden');
+    }
+
+    function handleQuickAiPrompt(promptText) {
+      const input = document.getElementById('ai-chat-input');
+      if (input) input.value = promptText;
+      submitAiMessage();
+    }
+
+    function retryLastAiQuery() {
+      hideAiError();
+      if (lastUserQuery) {
+        const input = document.getElementById('ai-chat-input');
+        if (input) input.value = lastUserQuery;
+        submitAiMessage();
+      }
+    }
+
+    async function submitAiMessage() {
+      const input = document.getElementById('ai-chat-input');
+      const message = (input ? input.value : '').trim();
+      if (!message || isAiLoading) return;
+
+      lastUserQuery = message;
+      hideAiError();
+
+      // Append user turn
+      aiChatHistory.push({ role: 'user', text: message });
+      renderAiMessages();
+      if (input) input.value = '';
+
+      showAiLoading("Consulting verified tourism database & generating advice...");
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: message,
+            history: aiChatHistory.slice(0, -1),
+            preferences: {
+              activeCategory: activeCategoryFilter,
+              activeLocation: activeLocationFilter
+            }
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          aiChatHistory.push({
+            role: 'assistant',
+            text: data.reply,
+            groundedPlaces: data.groundedPlaces || []
+          });
+          hideAiLoading();
+          renderAiMessages();
+        } else {
+          hideAiLoading();
+          if (data.error === 'MISSING_API_KEY') {
+            showAiError("GEMINI_API_KEY is not set in .env. Please configure your key in server environment to enable live AI generation.");
+            aiChatHistory.push({
+              role: 'assistant',
+              text: `⚠️ **AI Model Connection Notice: Missing API Key**\n\nThe server requires a valid \`GEMINI_API_KEY\` to generate live AI travel plans.\n\n### How to activate live AI generation:\n1. Open your \`.env\` file in the project root.\n2. Set: \`GEMINI_API_KEY=your_actual_key\` (Get one free at https://aistudio.google.com/app/apikey).\n3. Restart the server: \`npm start\`.\n\n*In the meantime, you can continue using the verified search bar and interactive map filters above!*`,
+              groundedPlaces: []
+            });
+            renderAiMessages();
+          } else {
+            const errStr = data.message || "Failed to communicate with AI service.";
+            showAiError(errStr);
+            aiChatHistory.push({
+              role: 'assistant',
+              text: `⚠️ **AI Service Error:** ${errStr}\n\nPlease click **Retry** or check your network connection.`,
+              groundedPlaces: []
+            });
+            renderAiMessages();
+          }
+        }
+      } catch (err) {
+        hideAiLoading();
+        showAiError(`Network error: ${err.message}. Make sure server is running on http://localhost:3000.`);
+        aiChatHistory.push({
+          role: 'assistant',
+          text: `⚠️ **Connection Error:** Could not connect to backend server at \`/api/chat\`. Ensure the server is started with \`npm start\`.`,
+          groundedPlaces: []
+        });
+        renderAiMessages();
+      }
+    }
+
+    // ==========================================
+    // 11. SPATIAL AUDIO GUIDE AI INTEGRATION
+    // ==========================================
+    async function handleAskQuestion() {
       const input = document.getElementById('ask-input');
       const res = document.getElementById('ask-response');
-      if (!input.value.trim()) return;
+      const query = (input ? input.value : '').trim();
+      if (!query) return;
+
       res.classList.remove('hidden');
-      res.innerText = `AI Response: "${input.value}" — Grounded in local verified archives. Charminar's stucco decorations and acoustic galleries date to the Qutb Shahi era.`;
-      input.value = '';
+      res.innerHTML = `
+        <div class="flex items-center space-x-2 text-amber-400">
+          <div class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></div>
+          <span>Asking AI regarding Charminar & Laad Bazaar...</span>
+        </div>
+      `;
+
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: `At Charminar & Laad Bazaar Hyderabad: ${query}`,
+            preferences: { destination: "Hyderabad" }
+          })
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+          res.innerHTML = `<span class="font-bold text-amber-300">AI Guide:</span> ${data.reply.replace(/\n/g, '<br/>')}`;
+        } else if (data.error === 'MISSING_API_KEY') {
+          res.innerHTML = `<span class="text-amber-400 font-semibold">AI Guide (Notice):</span> GEMINI_API_KEY is not configured in .env. Showing verified local archive: Charminar was constructed in 1591 CE by Muhammad Quli Qutb Shah. Laad Bazaar is renowned for lacquer bangles crafted with natural resin and pearls.`;
+        } else {
+          res.innerHTML = `<span class="text-rose-400">Error:</span> ${data.message || 'Could not fetch AI response.'}`;
+        }
+      } catch (e) {
+        res.innerHTML = `<span class="text-amber-400 font-semibold">AI Guide (Offline Fallback):</span> Grounded in local verified archives: Charminar was constructed in 1591 CE. Surrounding Laad Bazaar features 6-generation artisan shops.`;
+      }
+
+      if (input) input.value = '';
     }
 
     function simulateVoiceRecord() {
@@ -1878,6 +2309,7 @@
 
     // Initialize initial results on load
     renderSearchResults();
+    checkAiServerStatus();
   </script>
 </body>
 </html>
